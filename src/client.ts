@@ -31,7 +31,7 @@ import {
  * First-party Kupe API client.
  *
  * ```ts
- * import { Kupe } from "@kupe/sdk";
+ * import { Kupe } from "@kupeai/sdk";
  * const kupe = new Kupe(); // KUPE_API_KEY
  * const session = await kupe.realtime.sessions.create({ agent_id, voice: "priya" });
  * const rt = await kupe.realtime.connect(session);
