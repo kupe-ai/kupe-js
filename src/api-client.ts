@@ -1,4 +1,4 @@
-import { PermissionError } from "./errors.js";
+import { APIError, PermissionError } from "./errors.js";
 import { DEFAULT_BASE_URL, DEFAULT_TIMEOUT_MS, normalizeBaseUrl, request, toBlobPart } from "./http.js";
 import type { RealtimeSocketConstructor } from "./realtime.js";
 import type { AuthKind, KupeOptions, Me, Query, UploadFile } from "./types.js";
@@ -32,6 +32,7 @@ export class ApiClient implements Transport {
   private _projectId?: string;
   private _auth?: AuthKind;
   private _mePromise?: Promise<Me>;
+  private _scopePromise?: Promise<void>;
 
   constructor(opts: KupeOptions = {}) {
     const apiKey = opts.apiKey ?? env("KUPE_API_KEY");
@@ -61,34 +62,67 @@ export class ApiClient implements Transport {
 
   async me(): Promise<Me> {
     if (!this._mePromise) {
-      this._mePromise = this.get<Me>("/me").then((data) => {
-        if (!this._orgId && data.org_id) this._orgId = data.org_id;
-        if (!this._projectId && data.project_id) this._projectId = data.project_id;
-        if (data.auth) this._auth = data.auth;
-        return data;
-      });
+      this._mePromise = this.get<Me>("/me")
+        .then((data) => {
+          if (!this._orgId && data.org_id) this._orgId = data.org_id;
+          if (!this._projectId && data.project_id) this._projectId = data.project_id;
+          if (data.auth) this._auth = data.auth;
+          return data;
+        })
+        .catch((err) => {
+          this._mePromise = undefined;
+          throw err;
+        });
     }
     return this._mePromise;
+  }
+
+  /** Resolve org/project from /me, or feature-flags + projects when /me is missing. */
+  private async ensureScope(): Promise<void> {
+    if (this._orgId && this._projectId) return;
+    if (!this._scopePromise) {
+      this._scopePromise = (async () => {
+        try {
+          await this.me();
+        } catch (err) {
+          if (!(err instanceof APIError) || (err.status !== 404 && err.status !== 405)) {
+            throw err;
+          }
+        }
+        if (this._orgId && this._projectId) return;
+        const flags = await this.get<{ org_id?: string }>("/feature-flags");
+        if (!this._orgId && flags.org_id) this._orgId = flags.org_id;
+        if (!this._orgId || this._projectId) return;
+        const projects = await this.get<{ items?: Array<{ id?: string }> }>(`/orgs/${this._orgId}/projects`, {
+          limit: 1,
+        });
+        const id = projects.items?.[0]?.id;
+        if (id) this._projectId = id;
+      })().finally(() => {
+        this._scopePromise = undefined;
+      });
+    }
+    await this._scopePromise;
   }
 
   async requireOrgId(explicit?: string): Promise<string> {
     if (explicit) return explicit;
     if (this._orgId) return this._orgId;
-    const me = await this.me();
-    if (!me.org_id) {
+    await this.ensureScope();
+    if (!this._orgId) {
       throw new Error("Could not determine org_id. Pass org_id or call GET /v1/me.");
     }
-    return me.org_id;
+    return this._orgId;
   }
 
   async requireProjectId(explicit?: string): Promise<string> {
     if (explicit) return explicit;
     if (this._projectId) return this._projectId;
-    const me = await this.me();
-    if (!me.project_id) {
+    await this.ensureScope();
+    if (!this._projectId) {
       throw new Error("Could not determine project_id. Pass project_id or call GET /v1/me.");
     }
-    return me.project_id;
+    return this._projectId;
   }
 
   async requireJwt(action: string): Promise<void> {
