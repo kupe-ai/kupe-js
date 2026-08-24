@@ -1,15 +1,15 @@
-# @kupeai/sdk
+# kupe-sdk
 
 Official TypeScript SDK for the [Kupe](https://kupe.in) voice-agent API.
 
 ```bash
-npm install @kupeai/sdk
+npm install kupe-sdk
 ```
 
 Set `KUPE_API_KEY` (and optionally `KUPE_BASE_URL`). Paths are always `{base}/v1/...`.
 
 ```ts
-import { Kupe } from "@kupeai/sdk";
+import { Kupe } from "kupe-sdk";
 
 const kupe = new Kupe(); // reads KUPE_API_KEY / KUPE_BASE_URL
 const session = await kupe.realtime.sessions.create({

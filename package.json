@@ -1,5 +1,5 @@
 {
-  "name": "@kupeai/sdk",
+  "name": "kupe-sdk",
   "version": "0.1.0",
   "description": "Official TypeScript SDK for the Kupe API",
   "license": "MIT",
