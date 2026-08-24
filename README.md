@@ -1,10 +1,12 @@
 # kupe-sdk
 
-Official TypeScript SDK for the [Kupe](https://kupe.in) voice-agent API.
+Official TypeScript SDK for the [Kupe](https://docs.kupe.in) voice-agent API.
 
 ```bash
 npm install kupe-sdk
 ```
+
+Docs: [https://docs.kupe.in](https://docs.kupe.in)
 
 Set `KUPE_API_KEY` (and optionally `KUPE_BASE_URL`). Paths are always `{base}/v1/...`.
 

@@ -1,8 +1,9 @@
 {
   "name": "kupe-sdk",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Official TypeScript SDK for the Kupe API",
   "license": "MIT",
+  "homepage": "https://docs.kupe.in",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -40,10 +41,6 @@
     "realtime",
     "sdk"
   ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kupe-ai/kupe-js.git"
-  },
   "publishConfig": {
     "access": "public"
   },
