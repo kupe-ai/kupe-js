@@ -42,8 +42,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/kupe-ai/kupe.git",
-    "directory": "kupe-js"
+    "url": "git+https://github.com/kupe-ai/kupe-js.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "dependencies": {
     "ws": "^8.18.3"
