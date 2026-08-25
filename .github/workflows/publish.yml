@@ -7,6 +7,7 @@ on:
 jobs:
   npm:
     runs-on: ubuntu-latest
+    environment: npm
     permissions:
       id-token: write
       contents: read
@@ -15,8 +16,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
+          registry-url: "https://registry.npmjs.org"
       - run: npm ci
       - run: npm test
       - run: npm run build
-      - name: Publish with OIDC
-        run: npm publish --access public --provenance
+      - name: Publish
+        run: |
+          set +x
+          if [ -n "${NPM_TOKEN:-}" ]; then
+            printf '%s\n' "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > "$HOME/.npmrc"
+            npm publish --access public
+          else
+            # OIDC trusted publishing (requires Trusted Publisher on npmjs.com)
+            env -u NODE_AUTH_TOKEN npm publish --access public --provenance
+          fi
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
