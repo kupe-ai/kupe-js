@@ -192,13 +192,23 @@ export class Realtime {
     this.sessions = new RealtimeSessions(c);
   }
 
+  /**
+   * Open the realtime WebSocket for `session`.
+   *
+   * Set `echoSuppression: "half_duplex"` when the agent's audio plays out of
+   * open speakers next to the mic, so the agent does not hear and transcribe
+   * its own voice. See `RealtimeEchoOptions` for the barge-in trade-off.
+   */
   async connect(
     session: RealtimeSession,
-    opts: { model?: string; WebSocket?: import("../realtime.js").RealtimeSocketConstructor } = {},
+    opts: import("../realtime.js").RealtimeConnectOptions = {},
   ): Promise<RealtimeConnection> {
     const url = realtimeWebsocketUrl(session, opts.model ?? "kupe-realtime");
     const ws = await openRealtimeSocket(url, opts.WebSocket ?? this.c.webSocket);
-    return new RealtimeConnection(ws);
+    return new RealtimeConnection(ws, {
+      echoSuppression: opts.echoSuppression,
+      echoTailMs: opts.echoTailMs,
+    });
   }
 }
 

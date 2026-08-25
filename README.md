@@ -33,6 +33,13 @@ Pass `name` or `agent_id` (copy it from the agent editor). If `name` is new, Kup
 
 `new Kupe()` loads `org_id` / `project_id` from `GET /v1/me` when a method needs them. You can still pass them explicitly.
 
+Realtime audio is PCM16 mono at 24 kHz (`rt.appendAudio(pcm)`). Playing the agent
+through open speakers next to the mic makes it hear and answer itself — pass
+`kupe.realtime.connect(session, { echoSuppression: "half_duplex" })` to mute the
+mic while the agent speaks (no barge-in). In the browser keep the default
+`"none"` and request the mic with `getUserMedia({ audio: { echoCancellation: true } })`,
+which cancels the echo without losing barge-in.
+
 ## Resources
 
 | Client | Maps to |
