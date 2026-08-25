@@ -7,19 +7,16 @@ on:
 jobs:
   npm:
     runs-on: ubuntu-latest
-    environment: npm
     permissions:
       id-token: write
       contents: read
     steps:
       - uses: actions/checkout@v4
-      # Node 24 ships npm 11.5+ required for trusted publishing (OIDC).
-      # Node 22's npm 10 fails the handshake and npm returns a misleading 404.
-      # Do not set registry-url — that injects NODE_AUTH_TOKEN and blocks OIDC.
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
       - run: npm ci
       - run: npm test
       - run: npm run build
-      - run: npm publish --access public --provenance
+      - name: Publish with OIDC
+        run: npm publish --access public --provenance
