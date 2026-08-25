@@ -3,11 +3,11 @@ name: Publish to npm
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
 
 jobs:
   npm:
     runs-on: ubuntu-latest
-    environment: npm
     permissions:
       id-token: write
       contents: read
@@ -16,19 +16,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-          registry-url: "https://registry.npmjs.org"
       - run: npm ci
       - run: npm test
       - run: npm run build
       - name: Publish
         run: |
-          set +x
+          set -euo pipefail
           if [ -n "${NPM_TOKEN:-}" ]; then
             printf '%s\n' "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > "$HOME/.npmrc"
-            npm publish --access public
+            npx --yes npm@latest publish --access public
           else
-            # OIDC trusted publishing (requires Trusted Publisher on npmjs.com)
-            env -u NODE_AUTH_TOKEN npm publish --access public --provenance
+            # OIDC trusted publishing: do not use setup-node registry-url or NODE_AUTH_TOKEN.
+            rm -f "$HOME/.npmrc" .npmrc
+            npx --yes npm@latest publish --access public --provenance
           fi
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -4,6 +4,10 @@
   "description": "Official TypeScript SDK for the Kupe API",
   "license": "MIT",
   "homepage": "https://docs.kupe.in",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kupe-ai/kupe-js.git"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
