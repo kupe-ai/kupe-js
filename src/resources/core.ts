@@ -208,8 +208,10 @@ class RealtimeSessions {
   async create(params: CreateRealtimeSessionParams): Promise<RealtimeSession> {
     const org_id = params.org_id ?? (await this.c.requireOrgId().catch(() => undefined));
     const project_id = params.project_id ?? (await this.c.requireProjectId().catch(() => undefined));
+    const { id, agent_id, ...rest } = params;
     return this.c.post("/realtime/sessions", {
-      ...params,
+      ...rest,
+      ...(agent_id || id ? { agent_id: agent_id ?? id } : {}),
       ...(org_id ? { org_id } : {}),
       ...(project_id ? { project_id } : {}),
     });

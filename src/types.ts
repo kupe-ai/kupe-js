@@ -84,14 +84,24 @@ export type RealtimeSession = {
   client_secret: { value: string; expires_at: number };
   websocket_url: string;
   session_id?: string | null;
+  agent_id?: string | null;
   [key: string]: unknown;
 };
 
 export type CreateRealtimeSessionParams = {
-  agent_id: string;
+  agent_id?: string;
+  id?: string;
+  name?: string;
   org_id?: string;
   project_id?: string;
   voice?: string;
+  voice_id?: string;
+  prompt?: string;
+  instructions?: string;
+  greeting?: string;
+  greetings?: string;
+  tools?: JsonObject[];
+  mcp?: JsonObject | JsonObject[];
   variables?: Record<string, string>;
 };
 

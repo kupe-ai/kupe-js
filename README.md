@@ -15,8 +15,10 @@ import { Kupe } from "kupe-sdk";
 
 const kupe = new Kupe(); // reads KUPE_API_KEY / KUPE_BASE_URL
 const session = await kupe.realtime.sessions.create({
-  agent_id: "agt_...",
+  name: "Priya",
   voice: "priya",
+  prompt: "You collect overdue EMIs. Be warm and brief.",
+  greeting: "Hi, this is Priya from the bank.",
 });
 const rt = await kupe.realtime.connect(session);
 rt.send_text("Hi — remind them EMI is due tomorrow.");
@@ -26,6 +28,8 @@ for await (const event of rt) {
   }
 }
 ```
+
+Pass `name` or `agent_id` (copy it from the agent editor). If `name` is new, Kupe creates the agent with `prompt`, `greeting`, `voice`, and `tools`/`mcp`. An existing name is reused. Pass `voice` (name) or `voice_id` — either one.
 
 `new Kupe()` loads `org_id` / `project_id` from `GET /v1/me` when a method needs them. You can still pass them explicitly.
 

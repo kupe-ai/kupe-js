@@ -109,6 +109,49 @@ describe("auto-fill via GET /v1/me", () => {
     expect(mint?.url).not.toContain("/v1/v1/");
     expect(mint?.body).toMatchObject({ agent_id: "agt_1", voice: "priya", org_id: "org_1" });
   });
+
+  it("mints a realtime session by name without agent_id", async () => {
+    const { fetchImpl, calls } = installFetch((call) => {
+      if (call.url.endsWith("/v1/me")) return jsonResponse(ME);
+      return jsonResponse({
+        id: "rt_1",
+        agent_id: "new-agt",
+        client_secret: { value: "secret", expires_at: 1 },
+        websocket_url: "wss://x.kupe.in/v1/realtime",
+      });
+    });
+    const kupe = new Kupe({ apiKey: "sk-kupe-test", fetch: fetchImpl });
+    await kupe.realtime.sessions.create({
+      name: "Priya",
+      voice: "priya",
+      prompt: "Be brief.",
+      greeting: "Hi.",
+    });
+    const mint = calls.find((c) => c.url.includes("/realtime/sessions"));
+    expect(mint?.body).toMatchObject({
+      name: "Priya",
+      voice: "priya",
+      prompt: "Be brief.",
+      greeting: "Hi.",
+      org_id: "org_1",
+    });
+    expect(mint?.body).not.toHaveProperty("agent_id");
+  });
+
+  it("mints a realtime session with voice_id instead of voice name", async () => {
+    const { fetchImpl, calls } = installFetch((call) => {
+      if (call.url.endsWith("/v1/me")) return jsonResponse(ME);
+      return jsonResponse({
+        id: "rt_1",
+        client_secret: { value: "secret", expires_at: 1 },
+        websocket_url: "wss://x.kupe.in/v1/realtime",
+      });
+    });
+    const kupe = new Kupe({ apiKey: "sk-kupe-test", fetch: fetchImpl });
+    await kupe.realtime.sessions.create({ agent_id: "agt_1", voice_id: "pub-1" });
+    const mint = calls.find((c) => c.url.includes("/realtime/sessions"));
+    expect(mint?.body).toMatchObject({ agent_id: "agt_1", voice_id: "pub-1", org_id: "org_1" });
+  });
 });
 
 describe("errors", () => {

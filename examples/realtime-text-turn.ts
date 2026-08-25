@@ -5,12 +5,13 @@
  */
 import { Kupe } from "../src/index.js";
 
-const agentId = process.env.KUPE_AGENT_ID ?? "agt_collections_demo";
+const agentId = process.env.KUPE_AGENT_ID;
+const agentName = process.env.KUPE_AGENT_NAME ?? "Priya";
 const voice = process.env.KUPE_VOICE ?? "priya";
 
 const kupe = new Kupe();
 const session = await kupe.realtime.sessions.create({
-  agent_id: agentId,
+  ...(agentId ? { agent_id: agentId } : { name: agentName, prompt: "You collect overdue EMIs. Be warm and brief.", greeting: "Hi, this is Priya from the bank." }),
   voice,
 });
 console.log(`session ok — voice=${voice} ws=${session.websocket_url}`);

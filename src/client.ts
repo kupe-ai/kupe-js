@@ -33,7 +33,7 @@ import {
  * ```ts
  * import { Kupe } from "kupe-sdk";
  * const kupe = new Kupe(); // KUPE_API_KEY
- * const session = await kupe.realtime.sessions.create({ agent_id, voice: "priya" });
+ * const session = await kupe.realtime.sessions.create({ name: "Priya", voice: "priya", prompt: "…" });
  * const rt = await kupe.realtime.connect(session);
  * ```
  */
