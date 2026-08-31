@@ -252,6 +252,33 @@ describe("resource paths", () => {
     expect(urls.every((u) => u.includes("/v1/"))).toBe(true);
     expect(urls.some((u) => u.includes("/v1/v1/"))).toBe(false);
   });
+
+  it("phones.ucc list summary retrieve proof sync", async () => {
+    const { fetchImpl, calls } = installFetch((call) => {
+      if (call.url.endsWith("/v1/me")) return jsonResponse(ME);
+      return jsonResponse({ items: [], total: 0, actionable_count: 0 });
+    });
+    const kupe = new Kupe({ apiKey: "sk-kupe-test", fetch: fetchImpl });
+
+    await kupe.phones.ucc.list({ status: "pending", from_number: "+9111" });
+    await kupe.phones.ucc.summary();
+    await kupe.phones.ucc.retrieve("PUCC-2026-1");
+    await kupe.phones.ucc.submitProof("PUCC-2026-1", {
+      file: { data: new Uint8Array([1, 2, 3]), filename: "proof.pdf", contentType: "application/pdf" },
+    });
+    await kupe.phones.ucc.sync();
+
+    const urls = calls.map((c) => `${c.method} ${c.url}`);
+    expect(urls).toContain(
+      "GET https://x.kupe.in/v1/orgs/org_1/plivo/ucc?status=pending&from_number=%2B9111",
+    );
+    expect(urls).toContain("GET https://x.kupe.in/v1/orgs/org_1/plivo/ucc/summary");
+    expect(urls).toContain("GET https://x.kupe.in/v1/orgs/org_1/plivo/ucc/PUCC-2026-1");
+    expect(urls).toContain("POST https://x.kupe.in/v1/orgs/org_1/plivo/ucc/PUCC-2026-1/proof");
+    expect(urls).toContain("POST https://x.kupe.in/v1/orgs/org_1/plivo/ucc/sync");
+    const proof = calls.find((c) => c.url.endsWith("/proof"));
+    expect(proof?.body).toBeInstanceOf(FormData);
+  });
 });
 
 export type { RealtimeSession };

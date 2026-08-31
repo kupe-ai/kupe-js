@@ -5,9 +5,11 @@ import { pageQuery } from "./core.js";
 
 export class Phones {
   readonly compliance: PhoneCompliance;
+  readonly ucc: PhoneUcc;
 
   constructor(private readonly c: Transport) {
     this.compliance = new PhoneCompliance(c);
+    this.ucc = new PhoneUcc(c);
   }
 
   async search(params: { org_id?: string; country_iso: "US" | "IN" | string; pattern?: string }): Promise<JsonObject> {
@@ -84,6 +86,46 @@ class PhoneCompliance {
   async refresh(params: { org_id?: string } = {}): Promise<JsonObject | null> {
     const orgId = await this.c.requireOrgId(params.org_id);
     return this.c.post(`/orgs/${orgId}/plivo/compliance/refresh`);
+  }
+}
+
+class PhoneUcc {
+  constructor(private readonly c: Transport) {}
+
+  async list(
+    params: { org_id?: string; status?: string; from_number?: string } = {},
+  ): Promise<JsonObject> {
+    const orgId = await this.c.requireOrgId(params.org_id);
+    return this.c.get(`/orgs/${orgId}/plivo/ucc`, {
+      status: params.status,
+      from_number: params.from_number,
+    });
+  }
+
+  async summary(params: { org_id?: string } = {}): Promise<JsonObject> {
+    const orgId = await this.c.requireOrgId(params.org_id);
+    return this.c.get(`/orgs/${orgId}/plivo/ucc/summary`);
+  }
+
+  async retrieve(referenceId: string, params: { org_id?: string } = {}): Promise<JsonObject> {
+    const orgId = await this.c.requireOrgId(params.org_id);
+    return this.c.get(`/orgs/${orgId}/plivo/ucc/${referenceId}`);
+  }
+
+  async submitProof(
+    referenceId: string,
+    params: { org_id?: string; file: UploadFile },
+  ): Promise<JsonObject> {
+    const orgId = await this.c.requireOrgId(params.org_id);
+    return this.c.postForm(
+      `/orgs/${orgId}/plivo/ucc/${referenceId}/proof`,
+      fileToForm(params.file),
+    );
+  }
+
+  async sync(params: { org_id?: string } = {}): Promise<JsonObject> {
+    const orgId = await this.c.requireOrgId(params.org_id);
+    return this.c.post(`/orgs/${orgId}/plivo/ucc/sync`);
   }
 }
 

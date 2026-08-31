@@ -1,6 +1,6 @@
 {
   "name": "kupe-sdk",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Official TypeScript SDK for the Kupe API",
   "license": "MIT",
   "homepage": "https://docs.kupe.in",

@@ -85,7 +85,7 @@ export class RealtimeConnection implements AsyncIterable<RealtimeEvent> {
   private readonly echoSuppression: EchoSuppression;
   private readonly echoTail: number;
   private playbackUntil = 0;
-  /** Chunks dropped by echo suppression so far (diagnostics). */
+  /** Chunks replaced with silence by echo suppression (diagnostics). */
   suppressedChunks = 0;
 
   constructor(ws: RealtimeSocket, opts: RealtimeEchoOptions = {}) {
@@ -140,12 +140,24 @@ export class RealtimeConnection implements AsyncIterable<RealtimeEvent> {
   /**
    * Append a PCM16 mono 24 kHz chunk (raw bytes or base64).
    *
-   * Returns `true` when sent, `false` when echo suppression dropped it
-   * because the agent is still speaking. Pass `{ force: true }` to override.
+   * Returns `true` when the caller's audio was sent and `false` when echo
+   * suppression muted it because the agent is still speaking. A muted chunk is
+   * still sent, as silence, so the server's streaming VAD and STT keep
+   * receiving a continuous stream -- sending nothing stalls turn detection and
+   * the agent stops hearing the caller entirely. Pass `{ force: true }` to send
+   * the real audio regardless of the gate.
    */
   appendAudio(chunk: ArrayBuffer | Uint8Array | string, opts: { force?: boolean } = {}): boolean {
-    if (!opts.force && this.echoSuppression === "half_duplex" && this.agentIsSpeaking) {
+    const muted =
+      !opts.force && this.echoSuppression === "half_duplex" && this.agentIsSpeaking;
+    if (muted) {
       this.suppressedChunks += 1;
+      const nBytes =
+        typeof chunk === "string"
+          ? Math.max(0, Math.round(base64Pcm16Seconds(chunk) * PCM16_SAMPLE_RATE) * 2)
+          : (chunk instanceof Uint8Array ? chunk.byteLength : chunk.byteLength);
+      const silence = bytesToBase64(new Uint8Array(nBytes));
+      this.sendEvent({ type: "input_audio_buffer.append", audio: silence });
       return false;
     }
     const audio = typeof chunk === "string" ? chunk : bytesToBase64(chunk);

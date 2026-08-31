@@ -234,6 +234,14 @@ class DatabaseRows {
   ): Promise<ArrayBuffer> {
     return this.c.getBinary(`/databases/${databaseId}/export`, params);
   }
+
+  update(databaseId: string, rowId: string, params: JsonObject): Promise<JsonObject> {
+    return this.c.patch(`/databases/${databaseId}/rows/${rowId}`, params);
+  }
+
+  delete(databaseId: string, rowId: string): Promise<void> {
+    return this.c.delete(`/databases/${databaseId}/rows/${rowId}`);
+  }
 }
 
 export class KnowledgeBases {
