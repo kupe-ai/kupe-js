@@ -9,6 +9,8 @@ export {
   RateLimitError,
 } from "./errors.js";
 export { RealtimeConnection, realtimeWebsocketUrl, base64Pcm16Seconds, PCM16_SAMPLE_RATE } from "./realtime.js";
+export { ThinkSpark } from "./thinkspark.js";
+export type { Decision, ThinkSparkOptions } from "./thinkspark.js";
 export type {
   RealtimeSocket,
   RealtimeSocketConstructor,
